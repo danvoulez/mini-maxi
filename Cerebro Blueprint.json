@@ -1,0 +1,346 @@
+{
+  "blueprint_version": "1.1",
+  "name": "Agent Brain (Memory + RAG + Governance)",
+  "issued_at": "2025-10-26",
+  "goals": [
+    "Memória persistente com camadas (context, temporary, permanent)",
+    "RAG resiliente com fallback e circuit breaker",
+    "Governança completa (RBAC, criptografia seletiva, auditoria append-only)",
+    "Observabilidade de primeira classe (métricas, alertas, relatórios)",
+    "Auto-otimização controlada por métricas"
+  ],
+  "slo": {
+    "latency_p95_ms": 250,
+    "latency_p99_ms": 500,
+    "availability_target": 0.999,
+    "rag_latency_p95_ms": 1500
+  },
+  "limits": {
+    "memory_value_max_bytes": 65536,
+    "summary_max_tokens": 200,
+    "prompt_token_budget": 4096,
+    "tokenBudgetReserveForModel": 512
+  },
+  "memory": {
+    "layers": {
+      "context": {
+        "ttl_seconds": 900,
+        "cache": { "l1_ttl": 600, "l2_ttl": 900 },
+        "promotion": "never"
+      },
+      "temporary": {
+        "ttl_seconds": 604800,
+        "cache": { "l1_ttl": 1800, "l2_ttl": 3600 },
+        "eviction": { "policy": "LRU+TTL", "archive_on_expire": true },
+        "promotion_policy": {
+          "auto_promote": true,
+          "min_access_count": 20,
+          "min_used_in_responses": 10,
+          "min_confidence": 0.7,
+          "disallow_if_needsReview": true
+        }
+      },
+      "permanent": {
+        "ttl_seconds": null,
+        "cache": { "l2_ttl": 86400 },
+        "dedupe_on_key": true,
+        "drift_check_interval_hours": 6
+      }
+    },
+    "schema_validation": {
+      "enabled": true,
+      "patterns": {
+        "user:*:preference:*": "UserPreferenceSchema",
+        "project:*:architecture:*": "ArchitectureSchema",
+        "org:*:policy:*": "PolicySchema",
+        "session:*:context:*": "ContextSchema"
+      },
+      "on_fail": "reject_and_log"
+    },
+    "security": {
+      "rbac": {
+        "roles": ["admin", "user", "agent", "system"],
+        "permissions": [
+          "memory:read",
+          "memory:write",
+          "memory:promote",
+          "memory:delete",
+          "memory:admin"
+        ],
+        "promotion_requires": ["admin", "memory:promote"]
+      },
+      "encryption": {
+        "enabled": true,
+        "provider": "KMS",
+        "algo": "aes-256-gcm",
+        "sensitivity_map": {
+          "pii": "kms_key_pii",
+          "secret": "kms_key_secret",
+          "confidential": "kms_key_confidential"
+        }
+      },
+      "audit": {
+        "append_only": true,
+        "log_type": "Log",
+        "tx_operations": [
+          "CREATE",
+          "UPDATE",
+          "DELETE",
+          "PROMOTE",
+          "DEMOTE",
+          "ARCHIVE",
+          "REVIEW",
+          "MERGE"
+        ]
+      }
+    },
+    "indexing_sql": [
+      "CREATE INDEX idx_memory_layer_key ON Ledger_Object ((data->>'layer'), (data->>'key')) WHERE type = 'Memory';",
+      "CREATE INDEX idx_memory_tags ON Ledger_Object USING GIN ((data->'tags')) WHERE type = 'Memory';",
+      "CREATE INDEX idx_memory_expires ON Ledger_Object ((data->>'expiresAt')) WHERE type = 'Memory' AND (data->>'expiresAt') IS NOT NULL;",
+      "CREATE INDEX idx_memory_review ON Ledger_Object ((data->>'needsReview')) WHERE type = 'Memory' AND (data->>'needsReview')::boolean = true;"
+    ],
+    "key_conventions": {
+      "pattern": "{scope}:{entity}:{id}:{attribute}:{detail}",
+      "examples": [
+        "user:123:preference:theme",
+        "project:456:architecture:backend",
+        "org:789:policy:code_review",
+        "session:abc:context:current_file"
+      ]
+    }
+  },
+  "cache": {
+    "l1": {
+      "max_entries": 10000,
+      "eviction": "LRU",
+      "ttl_by_layer": { "context": 300, "temporary": 1800, "permanent": 3600 },
+      "warming": {
+        "enabled": true,
+        "predictors": ["recentAccess", "coAccess", "sessionContext"]
+      }
+    },
+    "l2": {
+      "engine": "redis",
+      "key_prefix": "mem:",
+      "compression": true,
+      "ttl_by_layer": { "context": 600, "temporary": 3600, "permanent": 86400 }
+    }
+  },
+  "rag": {
+    "enabled": true,
+    "sources": ["vectorDB", "webSearch", "internalDocs", "partnerAPIs"],
+    "timeouts_ms": { "vector": 800, "web": 1200 },
+    "circuit_breaker": {
+      "failure_threshold": 5,
+      "reset_timeout_ms": 60000,
+      "half_open_requests": 3
+    },
+    "fallbacks": ["cache_last_good", "permanent_memory", "degraded_response"],
+    "cache_ttl_seconds": 3600,
+    "drift_policy": {
+      "on_drift": "flag",
+      "threshold_percent": 25,
+      "min_confidence_for_auto_update": 0.85
+    }
+  },
+  "observability": {
+    "metrics": [
+      "memory_cache_l1_hit",
+      "memory_cache_l2_hit",
+      "memory_cache_miss",
+      "memory_get_workingset_latency_ms",
+      "memory_upsert_latency_ms",
+      "memory_promote_latency_ms",
+      "memory_upsert_count",
+      "memory_promote_count",
+      "memory_archive_count",
+      "memory_demote_count",
+      "memory_used_context_count",
+      "memory_used_temporary_count",
+      "memory_used_permanent_count",
+      "rag_trigger_count",
+      "rag_latency_ms",
+      "rag_fallback_count",
+      "rag_error_count",
+      "memory_needs_review_count",
+      "memory_validation_error_count",
+      "drift_detected_count",
+      "llm_answer_with_memory_ratio",
+      "llm_context_token_usage"
+    ],
+    "alerts": {
+      "high_memory_latency_p95_ms": 250,
+      "low_l2_hit_ratio": 0.4,
+      "rag_fallback_rate_warn": 0.1
+    },
+    "dashboards": ["Agent Memory System / Latency, Cache, RAG, Ops"]
+  },
+  "ops": {
+    "jobs": [
+      { "name": "expire_sweep", "cron": "0 * * * *" },
+      { "name": "drift_detection", "cron": "0 */6 * * *" },
+      { "name": "optimizer_report", "cron": "0 3 * * *" },
+      { "name": "monthly_report", "cron": "0 0 1 * *" },
+      { "name": "backup_permanent", "cron": "0 2 * * *" }
+    ],
+    "reports": { "monthly_enabled": true, "store_as_log_object": true }
+  },
+  "autotuning": {
+    "enabled": true,
+    "auto_apply_types": ["cache_sizing", "ttl_policy", "promotion_policy"],
+    "guardrails": { "max_change_percent": 50, "rollback_on_degradation": true }
+  },
+  "llm": {
+    "system_prompt": "Você é um agente Ledger com memória hierárquica (context/temporary/permanent) e ferramentas. Regras: (1) Recupere o working set com `memory.get_workingset` respeitando o tokenBudget; (2) Valide antes de gravar com `memory.upsert`; (3) Promova `temporary`→`permanent` somente se `needsReview=false` ou politicamente permitido; (4) Se faltar evidência, use `rag.retrieve` com timeouts e aceite degradação; (5) Sempre registre operações sensíveis (Log) e mantenha trilha imutável (Transactions). Jamais exponha dados sensíveis sem mascarar.",
+    "tool_contracts": [
+      {
+        "name": "memory.get_workingset",
+        "description": "Obtém contexto combinado de camadas dentro do orçamento de tokens",
+        "input": {
+          "sessionId": "string",
+          "keys": "string[]",
+          "tags": "string[]",
+          "tokenBudget": "number"
+        },
+        "output": {
+          "context": "MemoryRecord[]",
+          "temporary": "MemoryRecord[]",
+          "permanent": "MemoryRecord[]",
+          "ragSnippets": "Snippet[]",
+          "tokenBudget": "number"
+        }
+      },
+      {
+        "name": "memory.upsert",
+        "description": "Cria/atualiza memória com validação de schema e criptografia seletiva",
+        "input": {
+          "layer": "string",
+          "key": "string",
+          "value": "any",
+          "confidence": "number",
+          "tags": "string[]",
+          "sensitivity": "string",
+          "source": "string"
+        },
+        "output": { "ok": "boolean", "id": "string", "needsReview": "boolean" }
+      },
+      {
+        "name": "memory.promote",
+        "description": "Promove memória temporary para permanent (com regras)",
+        "input": {
+          "key": "string",
+          "force": "boolean?",
+          "merge": "boolean?",
+          "reason": "string?"
+        },
+        "output": { "ok": "boolean" }
+      },
+      {
+        "name": "memory.search",
+        "description": "Busca semântica/por chaves",
+        "input": {
+          "query": "string",
+          "layer": "string?",
+          "keys": "string[]?",
+          "tags": "string[]?",
+          "minConfidence": "number?"
+        },
+        "output": { "items": "MemoryRecord[]" }
+      },
+      {
+        "name": "rag.retrieve",
+        "description": "Recuperação de conhecimento externo com resiliência",
+        "input": { "query": "string", "hints": "object" },
+        "output": {
+          "snippets": "Snippet[]",
+          "citations": "Citation[]",
+          "notice": "string?",
+          "degraded": "boolean?"
+        }
+      }
+    ],
+    "safety": {
+      "mask_sensitive": true,
+      "deny_autopromote_if_needsReview": true,
+      "max_write_ops_per_turn": 5
+    }
+  },
+  "pr_and_merge_policy": {
+    "epics": [
+      "EP1-Fundacao",
+      "EP2-Seguranca",
+      "EP3-Qualidade",
+      "EP4-RAG",
+      "EP5-AutoOtimizacao"
+    ],
+    "prs": [
+      {
+        "id": "PR-001",
+        "epic": "EP1-Fundacao",
+        "title": "MemoryManager básico + CRUD + índices",
+        "auto_merge_if_checks_green": true
+      },
+      {
+        "id": "PR-002",
+        "epic": "EP1-Fundacao",
+        "title": "Cache L1/L2 + invalidação + métricas mínimas",
+        "auto_merge_if_checks_green": true
+      },
+      {
+        "id": "PR-003",
+        "epic": "EP2-Seguranca",
+        "title": "RBAC + criptografia seletiva + auditoria",
+        "auto_merge_if_checks_green": true
+      },
+      {
+        "id": "PR-004",
+        "epic": "EP3-Qualidade",
+        "title": "SchemaRegistry + needsReview + relatórios",
+        "auto_merge_if_checks_green": true
+      },
+      {
+        "id": "PR-005",
+        "epic": "EP4-RAG",
+        "title": "RAGManager + circuit breaker + fallbacks",
+        "auto_merge_if_checks_green": true
+      },
+      {
+        "id": "PR-006",
+        "epic": "EP5-AutoOtimizacao",
+        "title": "Optimizer + AutoTuner + cache warming",
+        "auto_merge_if_checks_green": true
+      }
+    ],
+    "gates": {
+      "required_checks": ["agent-validation"],
+      "bypass_for": ["ledger-agent[bot]"],
+      "branch_protection": {
+        "strict": true,
+        "dismiss_stale_reviews": true,
+        "require_reviews": 1
+      }
+    },
+    "ci_matrix": {
+      "unit": true,
+      "integration": true,
+      "lint": true,
+      "typecheck": true,
+      "perf_smoke": true
+    }
+  },
+  "ops_playbooks": {
+    "degraded_rag": "Responder com memórias permanentes + aviso; registrar Log e métrica rag_fallback_count.",
+    "high_latency": "Checar cache hit ratio; se baixo, aumentar L1/L2 via AutoTuner; revisar índices.",
+    "review_backlog": "Habilitar auto_review com thresholds; gerar relatório para owners."
+  },
+  "policy": {
+    "version": "1.1",
+    "changelog": [
+      "Adicionar limites de tamanho e reserva de tokens",
+      "Contratos de ferramentas LLM explícitos",
+      "Política de merge automática simplificada (1 check)",
+      "Autotuning com guardrails"
+    ]
+  }
+}

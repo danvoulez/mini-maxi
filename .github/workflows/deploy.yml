@@ -1,0 +1,77 @@
+name: Migrate, Deploy, and Smoke Test (Vercel)
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    name: Run DB migrations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - run: pnpm install
+      - name: Run migrations
+        run: pnpm db:migrate
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+
+  deploy:
+    name: Vercel build & deploy (prod)
+    runs-on: ubuntu-latest
+    needs: migrate
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - run: pnpm install
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+      - name: Pull Vercel env (production)
+        run: vercel pull --yes --environment=production --token $VERCEL_TOKEN
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Build (prebuilt)
+        run: vercel build --prod --token $VERCEL_TOKEN
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy (prebuilt to production)
+        id: deploy
+        run: |
+          URL=$(vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" | tail -n1)
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Deployed to: $URL"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+  smoke:
+    name: Smoke test /ping
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Hit /ping
+        run: |
+          set -euo pipefail
+          URL="${{ needs.deploy.outputs.url }}"
+          echo "Testing $URL/ping"
+          curl -sSfL "$URL/ping" | tee response.json
+          grep -q '"ok": true' response.json
