@@ -1,0 +1,34 @@
+name: Manual DB Migrate
+
+on:
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: "Check migration status only (no changes)"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false","true"]
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - run: pnpm install
+      - name: Check migrations
+        if: inputs.dryRun == 'true'
+        run: pnpm db:check
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+      - name: Run migrations
+        if: inputs.dryRun != 'true'
+        run: pnpm db:migrate
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
