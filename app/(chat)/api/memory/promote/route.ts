@@ -12,17 +12,11 @@ export async function POST(request: Request) {
   const json = await request.json().catch(() => ({}));
   const parsed = promoteRequestSchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ error: "bad_request", issues: parsed.error.format() }
+    return NextResponse.json({ error: "bad_request", issues: parsed.error.format() }, { status: 400 });
+  }
   const ownerId = session.user.id;
   const requestId = (parsed.data as any).requestId ?? randomUUID();
-, { status: 400 });
-  }
-  const { key, force, merge, reason, requestId } = parsed.data;
-
-
-
-  , { status: 403 });
-  }
+  const { key, force, merge, reason } = parsed.data;
 
   if (!key) {
     return NextResponse.json({ error: "missing_key" }, { status: 400 });
@@ -39,7 +33,7 @@ export async function POST(request: Request) {
       ownerId,
       key,
       force,
-      merge,
+      merge: typeof merge === 'object' ? true : merge,
       reason,
       requestId,
       actorId: session.user.id,

@@ -25,13 +25,6 @@ export async function GET(request: Request) {
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const json = await request.json().catch(() => ({}));
-  const parsed = objectPostSchema.safeParse(json);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "bad_request", issues: parsed.error.format() }, { status: 400 });
-  }
-  const { typeName, data, metadata } = parsed.data;
-
 
   const url = new URL(request.url);
   const typeName = url.searchParams.get("type");
@@ -105,6 +98,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const json = await request.json().catch(() => ({}));
+  const parsed = objectPostSchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "bad_request", issues: parsed.error.format() }, { status: 400 });
+  }
+  const { typeName, data, metadata } = parsed.data;
+
+  const client = postgres(process.env.POSTGRES_URL!);
+  const db = drizzle(client);
+
+  try {
     if (!typeName || !data) {
       return NextResponse.json(
         { error: "bad_request", message: "typeName and data are required" },

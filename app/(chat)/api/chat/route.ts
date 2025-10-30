@@ -28,7 +28,6 @@ import { ledgerAggregates } from "@/lib/ai/tools/ledger-aggregates";
 import { ledgerObjects } from "@/lib/ai/tools/ledger-objects";
 import { ledgerTransactions } from "@/lib/ai/tools/ledger-transactions";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
-import { ledgerAggregates } from "@/lib/ai/tools/ledger-aggregates";
 import { cerebroTools } from "@/lib/ai/tools/cerebro";
 
 import { updateDocument } from "@/lib/ai/tools/update-document";

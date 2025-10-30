@@ -33,11 +33,11 @@ export async function POST(request: Request) {
   }
   const { objectId, operationType, changes } = parsed.data;
 
-
-
-  
   const createdBy = session.user.id;
-try {
+  const client = postgres(process.env.POSTGRES_URL!);
+  const db = drizzle(client);
+
+  try {
     if (!objectId || !operationType || !changes) {
       return NextResponse.json(
         {

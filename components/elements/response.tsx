@@ -11,7 +11,7 @@ let _highlighter: any = null;
 async function getHighlighter() {
   if (_highlighter) return _highlighter;
   const shiki = await import("shiki");
-  _highlighter = await shiki.getHighlighter({
+  _highlighter = await shiki.createHighlighter({
     themes: ["github-dark", "github-light"],
     langs: ["ts","tsx","js","jsx","json","bash","python","go","rust","sql","html","css","scss","yaml","toml","md","sh"],
   });

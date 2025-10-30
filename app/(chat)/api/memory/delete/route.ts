@@ -12,17 +12,11 @@ export async function POST(request: Request) {
   const json = await request.json().catch(() => ({}));
   const parsed = deleteRequestSchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ error: "bad_request", issues: parsed.error.format() }
+    return NextResponse.json({ error: "bad_request", issues: parsed.error.format() }, { status: 400 });
+  }
   const ownerId = session.user.id;
   const requestId = (parsed.data as any).requestId ?? randomUUID();
-, { status: 400 });
-  }
-  const { ids, keys, requestId } = parsed.data;
-
-
-
-  , { status: 403 });
-  }
+  const { ids, keys } = parsed.data;
 
   const conn = process.env.POSTGRES_URL;
   if (!conn) {

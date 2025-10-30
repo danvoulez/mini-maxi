@@ -92,7 +92,7 @@ class PerformanceMonitor {
             name: 'CLS',
             value,
             rating: getMetricRating('CLS', value),
-            id: entry.id,
+            id: (entry as any).id || entry.name,
           });
         }
       });
@@ -112,7 +112,7 @@ class PerformanceMonitor {
           name: 'LCP',
           value,
           rating: getMetricRating('LCP', value),
-          id: lastEntry.id,
+          id: (lastEntry as any).id || lastEntry.name,
         });
       });
       lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
@@ -130,7 +130,7 @@ class PerformanceMonitor {
             name: 'FID',
             value,
             rating: getMetricRating('FID', value),
-            id: entry.id,
+            id: (entry as any).id || entry.name,
           });
         }
       });
@@ -150,7 +150,7 @@ class PerformanceMonitor {
               name: 'FCP',
               value,
               rating: getMetricRating('FCP', value),
-              id: entry.id,
+              id: (entry as any).id || entry.name,
             });
           }
         }
