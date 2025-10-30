@@ -1,5 +1,43 @@
 # Changelog — minicontratos-mini-main
 
+## [3.2.0 - Premium A++ Enhancements] – 2025-10-30
+
+### Added - Infrastructure & DevOps 🚀
+- **Docker Development Environment**: Full Docker Compose setup with PostgreSQL (pgvector), Redis, and optional pgAdmin
+- **Feature Flags System**: Dynamic feature toggling with percentage rollouts, user targeting, and A/B testing support
+- **Comprehensive Logging**: Structured logging framework with multiple levels, context propagation, and external service integration
+- **Rate Limiting**: Token bucket rate limiting with presets for auth, API, chat, and expensive operations
+- **Error Handling**: Centralized error handling with AppError class, error factories, and retry mechanisms
+
+### Added - Testing & Quality 🧪
+- **Test Utilities**: Comprehensive testing helpers including mocks, fixtures, and assertions
+- **Unit Tests**: Test suites for rate limiting and error handling modules
+- **Performance Monitoring**: Web Vitals tracking, resource timing, and custom performance measurements
+
+### Added - Documentation 📚
+- **API Documentation**: Complete API reference with examples, status codes, and SDK usage
+- **Security Policy (SECURITY.md)**: Comprehensive security guidelines, vulnerability reporting, and compliance information
+- **Contributing Guide (CONTRIBUTING.md)**: Development setup, code style, commit conventions, and testing guidelines
+- **Docker Guide (DOCKER_GUIDE.md)**: Full Docker development workflow and troubleshooting
+- **Architecture Decision Records (ADRs)**: Framework for documenting architectural decisions with template and examples
+
+### Added - Developer Experience 🛠️
+- **Pre-commit Hooks**: Automated linting and formatting before commits
+- **Conventional Commits**: Commitlint configuration for standardized commit messages
+- **Lint-staged**: Auto-formatting on staged files
+- **Enhanced VS Code Config**: Improved settings with Tailwind CSS support, spell checking, and 14 recommended extensions
+
+### Fixed - Code Quality 🔧
+- Fixed React hooks exhaustive dependencies warnings in auth pages (login.tsx, register.tsx)
+
+### Changed
+- Enhanced VS Code workspace with Tailwind CSS IntelliSense, code spell checker, and improved TypeScript settings
+- Improved file exclusions for cleaner search and better performance
+
+---
+
+## [3.1.0 - Previous Release]
+
 ## [UI Rich Rendering] – Added
 - Enhanced **Response** renderer with:
   - **Shiki** syntax highlighting (light/dark auto).

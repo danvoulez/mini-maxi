@@ -1,3 +1,19 @@
 {
-  "recommendations": ["biomejs.biome"]
+  "recommendations": [
+    "biomejs.biome",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "ms-playwright.playwright",
+    "prisma.prisma",
+    "github.copilot",
+    "github.copilot-chat",
+    "usernamehw.errorlens",
+    "christian-kohler.path-intellisense",
+    "formulahendry.auto-rename-tag",
+    "visualstudioexptteam.vscodeintellicode",
+    "eamodio.gitlens",
+    "wix.vscode-import-cost",
+    "streetsidesoftware.code-spell-checker"
+  ]
 }

@@ -1,0 +1,10 @@
+{
+  "*.{js,jsx,ts,tsx}": [
+    "pnpm lint --fix",
+    "git add"
+  ],
+  "*.{json,md,yml,yaml}": [
+    "prettier --write",
+    "git add"
+  ]
+}
