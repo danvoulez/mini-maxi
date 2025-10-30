@@ -286,8 +286,8 @@ export function Feature({
   fallback,
 }: {
   name: string;
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  children: any; // Using any instead of React.ReactNode to avoid React import
+  fallback?: any;
 }) {
   const enabled = useFeature(name);
   return enabled ? <>{children}</> : <>{fallback}</>;
@@ -341,6 +341,12 @@ export function trackFeatureUsage(
 export async function loadRemoteFeatureFlags(
   endpoint: string
 ): Promise<void> {
+  // Only load if fetch is available (browser or Node 18+)
+  if (typeof fetch === 'undefined') {
+    console.warn('fetch not available, skipping remote feature flags');
+    return;
+  }
+
   try {
     const response = await fetch(endpoint);
     const remoteFlags = await response.json();

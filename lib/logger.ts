@@ -143,8 +143,8 @@ class Logger implements ILogger {
     // Examples: DataDog, Sentry, LogDNA, Papertrail
     
     // For now, this is a placeholder
-    if (process.env.LOGGING_ENDPOINT) {
-      // Send to external service
+    if (process.env.LOGGING_ENDPOINT && typeof fetch !== 'undefined') {
+      // Send to external service (only in environments where fetch is available)
       fetch(process.env.LOGGING_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
