@@ -36,9 +36,7 @@ pnpm-debug.log*
 docs
 *.md
 !README.md
-CHANGELOG.md
-CONTRIBUTING.md
-LICENSE
+!DEPLOYMENT_GUIDE.md
 
 # Docker
 Dockerfile*

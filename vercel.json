@@ -8,8 +8,8 @@
 		"app/(chat)/api/**/*.ts": {
 			"maxDuration": 60
 		},
-		"app/api/**/*.ts": {
-			"maxDuration": 60
+		"app/(auth)/api/**/*.ts": {
+			"maxDuration": 30
 		}
 	},
 	"headers": [
@@ -21,13 +21,6 @@
 					"value": "no-store, must-revalidate"
 				}
 			]
-		}
-	],
-	"redirects": [
-		{
-			"source": "/app/(chat)/api/:path*",
-			"destination": "/api/:path*",
-			"permanent": false
 		}
 	]
 }
