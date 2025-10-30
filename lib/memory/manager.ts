@@ -367,20 +367,18 @@ export class MemoryManager {
           );
         deleted += toDelete.length;
         for (const row of toDelete) {
-          await db
-            .insert(memoryAudit)
-            .values({
-              ownerId: params.ownerId,
-              actorId: params.actorId ?? null,
-              action: "DELETE",
-              entityId: row.id,
-              entityKey: row.key,
-              scope: row.scope,
-              layer: row.layer,
-              before: row as any,
-              after: null,
-              requestId: params.requestId ?? null,
-            });
+          await db.insert(memoryAudit).values({
+            ownerId: params.ownerId,
+            actorId: params.actorId ?? null,
+            action: "DELETE",
+            entityId: row.id,
+            entityKey: row.key,
+            scope: row.scope,
+            layer: row.layer,
+            before: row as any,
+            after: null,
+            requestId: params.requestId ?? null,
+          });
         }
       }
       if (params.keys && params.keys.length) {
@@ -403,20 +401,18 @@ export class MemoryManager {
           );
         deleted += toDelete.length;
         for (const row of toDelete) {
-          await db
-            .insert(memoryAudit)
-            .values({
-              ownerId: params.ownerId,
-              actorId: params.actorId ?? null,
-              action: "DELETE",
-              entityId: row.id,
-              entityKey: row.key,
-              scope: row.scope,
-              layer: row.layer,
-              before: row as any,
-              after: null,
-              requestId: params.requestId ?? null,
-            });
+          await db.insert(memoryAudit).values({
+            ownerId: params.ownerId,
+            actorId: params.actorId ?? null,
+            action: "DELETE",
+            entityId: row.id,
+            entityKey: row.key,
+            scope: row.scope,
+            layer: row.layer,
+            before: row as any,
+            after: null,
+            requestId: params.requestId ?? null,
+          });
         }
       }
 

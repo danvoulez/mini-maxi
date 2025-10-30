@@ -45,44 +45,38 @@ export async function GET(request: Request) {
         .from(ledgerObject)
         .where(eq(ledgerObject.typeId, types[0].id));
       const __logTypeId = await ensureLogTypeId(db);
-      await db
-        .insert(ledgerObject)
-        .values({
-          typeId: __logTypeId,
-          data: {
-            level: "info",
-            message: "ledger.objects.get",
-            context: { typeName, count: rows.length },
-          },
-        });
+      await db.insert(ledgerObject).values({
+        typeId: __logTypeId,
+        data: {
+          level: "info",
+          message: "ledger.objects.get",
+          context: { typeName, count: rows.length },
+        },
+      });
       return NextResponse.json(rows, { status: 200 });
     }
     const rows = await db.select().from(ledgerObject);
     // GET success log (no filter)
     const __logTypeId = await ensureLogTypeId(db);
-    await db
-      .insert(ledgerObject)
-      .values({
-        typeId: __logTypeId,
-        data: {
-          level: "info",
-          message: "ledger.objects.get",
-          context: { count: rows.length },
-        },
-      });
+    await db.insert(ledgerObject).values({
+      typeId: __logTypeId,
+      data: {
+        level: "info",
+        message: "ledger.objects.get",
+        context: { count: rows.length },
+      },
+    });
     return NextResponse.json(rows, { status: 200 });
   } catch (e: any) {
     const __logTypeId = await ensureLogTypeId(db);
-    await db
-      .insert(ledgerObject)
-      .values({
-        typeId: __logTypeId,
-        data: {
-          level: "error",
-          message: "ledger.objects.get.error",
-          context: { typeName, error: String(e?.message || e) },
-        },
-      });
+    await db.insert(ledgerObject).values({
+      typeId: __logTypeId,
+      data: {
+        level: "error",
+        message: "ledger.objects.get.error",
+        context: { typeName, error: String(e?.message || e) },
+      },
+    });
     return NextResponse.json(
       { error: "query_failed", message: e?.message || "Unknown error" },
       { status: 500 }
@@ -101,7 +95,10 @@ export async function POST(request: Request) {
   const json = await request.json().catch(() => ({}));
   const parsed = objectPostSchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ error: "bad_request", issues: parsed.error.format() }, { status: 400 });
+    return NextResponse.json(
+      { error: "bad_request", issues: parsed.error.format() },
+      { status: 400 }
+    );
   }
   const { typeName, data, metadata } = parsed.data;
 
@@ -134,29 +131,25 @@ export async function POST(request: Request) {
       .returning();
     // POST success log
     const __logTypeId = await ensureLogTypeId(db);
-    await db
-      .insert(ledgerObject)
-      .values({
-        typeId: __logTypeId,
-        data: {
-          level: "info",
-          message: "ledger.objects.post",
-          context: { typeName, objectId: created.id },
-        },
-      });
+    await db.insert(ledgerObject).values({
+      typeId: __logTypeId,
+      data: {
+        level: "info",
+        message: "ledger.objects.post",
+        context: { typeName, objectId: created.id },
+      },
+    });
     return NextResponse.json(created, { status: 201 });
   } catch (e: any) {
     const __logTypeId = await ensureLogTypeId(db);
-    await db
-      .insert(ledgerObject)
-      .values({
-        typeId: __logTypeId,
-        data: {
-          level: "error",
-          message: "ledger.objects.post.error",
-          context: { error: String(e?.message || e) },
-        },
-      });
+    await db.insert(ledgerObject).values({
+      typeId: __logTypeId,
+      data: {
+        level: "error",
+        message: "ledger.objects.post.error",
+        context: { error: String(e?.message || e) },
+      },
+    });
     return NextResponse.json(
       { error: "create_failed", message: e?.message || "Unknown error" },
       { status: 500 }

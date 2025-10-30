@@ -13,7 +13,25 @@ async function getHighlighter() {
   const shiki = await import("shiki");
   _highlighter = await shiki.createHighlighter({
     themes: ["github-dark", "github-light"],
-    langs: ["ts","tsx","js","jsx","json","bash","python","go","rust","sql","html","css","scss","yaml","toml","md","sh"],
+    langs: [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "bash",
+      "python",
+      "go",
+      "rust",
+      "sql",
+      "html",
+      "css",
+      "scss",
+      "yaml",
+      "toml",
+      "md",
+      "sh",
+    ],
   });
   return _highlighter;
 }
@@ -25,28 +43,50 @@ function enhanceTables(root: HTMLElement) {
     if (t.dataset.enhanced === "true") return;
     t.dataset.enhanced = "true";
     t.classList.add(
-      "w-full","text-sm","border-separate","border-spacing-0","my-4","rounded-md","overflow-hidden"
+      "w-full",
+      "text-sm",
+      "border-separate",
+      "border-spacing-0",
+      "my-4",
+      "rounded-md",
+      "overflow-hidden"
     );
     const thead = t.querySelector("thead");
     if (thead) {
       thead.classList.add("bg-muted");
       thead.querySelectorAll("th").forEach((th) => {
-        (th as HTMLElement).classList.add("px-3","py-2","text-left","font-medium","border-b");
+        (th as HTMLElement).classList.add(
+          "px-3",
+          "py-2",
+          "text-left",
+          "font-medium",
+          "border-b"
+        );
       });
     }
     const tbody = t.querySelector("tbody") ?? t;
     tbody.querySelectorAll("tr").forEach((tr) => {
       (tr as HTMLElement).classList.add("odd:bg-muted/30");
       tr.querySelectorAll("td").forEach((td) => {
-        (td as HTMLElement).classList.add("px-3","py-2","align-top","border-b");
+        (td as HTMLElement).classList.add(
+          "px-3",
+          "py-2",
+          "align-top",
+          "border-b"
+        );
       });
     });
   });
 }
 
 function buildLineNumbered(html: string, raw: string) {
-  const lines = raw.replace(/\n$/,"").split("\n");
-  const gutter = lines.map((_,i)=>`<div class="px-3 text-right select-none opacity-60">${i+1}</div>`).join("");
+  const lines = raw.replace(/\n$/, "").split("\n");
+  const gutter = lines
+    .map(
+      (_, i) =>
+        `<div class="px-3 text-right select-none opacity-60">${i + 1}</div>`
+    )
+    .join("");
   // Wrap the provided Shiki HTML inside a flex row
   return `
     <div class="flex text-sm font-mono leading-6">
@@ -72,17 +112,25 @@ async function enhanceCodeBlocks(root: HTMLElement) {
     const raw = codeEl.textContent ?? "";
 
     // produce shiki HTML with both themes (use prefers-color-scheme OR local toggle)
-    const htmlDark = highlighter.codeToHtml(raw, { lang, theme: "github-dark" });
-    const htmlLight = highlighter.codeToHtml(raw, { lang, theme: "github-light" });
+    const htmlDark = highlighter.codeToHtml(raw, {
+      lang,
+      theme: "github-dark",
+    });
+    const htmlLight = highlighter.codeToHtml(raw, {
+      lang,
+      theme: "github-light",
+    });
 
     // wrapper
     const wrapper = document.createElement("div");
-    wrapper.className = "group rounded-md border bg-muted/30 overflow-hidden my-3";
+    wrapper.className =
+      "group rounded-md border bg-muted/30 overflow-hidden my-3";
     wrapper.dataset.theme = ""; // empty -> follow system
 
     // header
     const header = document.createElement("div");
-    header.className = "flex items-center justify-between px-3 py-1.5 text-xs text-muted-foreground border-b bg-muted/40";
+    header.className =
+      "flex items-center justify-between px-3 py-1.5 text-xs text-muted-foreground border-b bg-muted/40";
     const left = document.createElement("div");
     left.className = "flex items-center gap-2";
     const label = document.createElement("span");
@@ -95,7 +143,8 @@ async function enhanceCodeBlocks(root: HTMLElement) {
     // actions
     const btnCopy = document.createElement("button");
     btnCopy.type = "button";
-    btnCopy.className = "px-2 py-0.5 rounded border bg-background hover:bg-accent transition-colors";
+    btnCopy.className =
+      "px-2 py-0.5 rounded border bg-background hover:bg-accent transition-colors";
     btnCopy.textContent = "Copiar";
     btnCopy.addEventListener("click", async () => {
       try {
@@ -107,7 +156,8 @@ async function enhanceCodeBlocks(root: HTMLElement) {
 
     const btnDownload = document.createElement("button");
     btnDownload.type = "button";
-    btnDownload.className = "px-2 py-0.5 rounded border bg-background hover:bg-accent transition-colors";
+    btnDownload.className =
+      "px-2 py-0.5 rounded border bg-background hover:bg-accent transition-colors";
     btnDownload.textContent = "Baixar";
     btnDownload.addEventListener("click", () => {
       const blob = new Blob([raw], { type: "text/plain;charset=utf-8" });
@@ -117,12 +167,13 @@ async function enhanceCodeBlocks(root: HTMLElement) {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     });
 
     const btnExpand = document.createElement("button");
     btnExpand.type = "button";
-    btnExpand.className = "px-2 py-0.5 rounded border bg-background hover:bg-accent transition-colors";
+    btnExpand.className =
+      "px-2 py-0.5 rounded border bg-background hover:bg-accent transition-colors";
     btnExpand.textContent = "Expandir";
     btnExpand.addEventListener("click", () => {
       const isCollapsed = wrapper.dataset.collapsed === "true";
@@ -139,7 +190,8 @@ async function enhanceCodeBlocks(root: HTMLElement) {
 
     const btnTheme = document.createElement("button");
     btnTheme.type = "button";
-    btnTheme.className = "px-2 py-0.5 rounded border bg-background hover:bg-accent transition-colors";
+    btnTheme.className =
+      "px-2 py-0.5 rounded border bg-background hover:bg-accent transition-colors";
     btnTheme.textContent = "Tema";
     btnTheme.title = "Alternar tema Light/Dark deste bloco";
     btnTheme.addEventListener("click", () => {
@@ -187,7 +239,10 @@ async function enhanceCodeBlocks(root: HTMLElement) {
         innerLight.style.display = "block";
       } else {
         // system
-        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        if (
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+        ) {
           innerDark.style.display = "block";
           innerLight.style.display = "none";
         } else {
@@ -203,7 +258,8 @@ async function enhanceCodeBlocks(root: HTMLElement) {
       wrapper.dataset.collapsed = "true";
       content.classList.add("max-h-96");
       const fade = document.createElement("div");
-      fade.className = "pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-muted/70 to-transparent";
+      fade.className =
+        "pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-muted/70 to-transparent";
       content.appendChild(fade);
     }
 
@@ -221,10 +277,9 @@ function enhanceInlineCode(root: HTMLElement) {
     const e = el as HTMLElement;
     if (e.dataset.enhanced === "true") return;
     e.dataset.enhanced = "true";
-    e.classList.add("rounded","bg-muted","px-1","py-0.5","text-sm");
+    e.classList.add("rounded", "bg-muted", "px-1", "py-0.5", "text-sm");
   });
 }
-
 
 // --- Enhancers: reasoning, cards, mini-forms ---
 function enhanceReasoning(root: HTMLElement) {
@@ -238,7 +293,8 @@ function enhanceReasoning(root: HTMLElement) {
     const details = document.createElement("details");
     details.className = "rounded-md border bg-muted/20 my-3";
     const summary = document.createElement("summary");
-    summary.className = "px-3 py-2 cursor-pointer text-sm text-muted-foreground";
+    summary.className =
+      "px-3 py-2 cursor-pointer text-sm text-muted-foreground";
     summary.textContent = "Mostrar passos (raciocínio)";
     const body = document.createElement("pre");
     const code = document.createElement("code");
@@ -252,7 +308,11 @@ function enhanceReasoning(root: HTMLElement) {
 }
 
 function parseJsonSafe(s: string): any | null {
-  try { return JSON.parse(s); } catch { return null; }
+  try {
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
 }
 
 function enhanceCards(root: HTMLElement) {
@@ -269,7 +329,8 @@ function enhanceCards(root: HTMLElement) {
     const data = parseJsonSafe(raw) ?? {};
 
     const wrap = document.createElement("div");
-    wrap.className = "rounded-md border bg-card text-card-foreground p-4 my-3 shadow-sm";
+    wrap.className =
+      "rounded-md border bg-card text-card-foreground p-4 my-3 shadow-sm";
 
     const head = document.createElement("div");
     head.className = "flex items-center justify-between gap-2 mb-2";
@@ -289,19 +350,27 @@ function enhanceCards(root: HTMLElement) {
     function addField(label: string, value: any) {
       if (value === undefined || value === null || value === "") return;
       const item = document.createElement("div");
-      const l = document.createElement("div"); l.className = "text-xs uppercase text-muted-foreground"; l.textContent = label;
-      const v = document.createElement("div"); v.className = "font-medium"; v.textContent = String(value);
-      item.appendChild(l); item.appendChild(v);
+      const l = document.createElement("div");
+      l.className = "text-xs uppercase text-muted-foreground";
+      l.textContent = label;
+      const v = document.createElement("div");
+      v.className = "font-medium";
+      v.textContent = String(value);
+      item.appendChild(l);
+      item.appendChild(v);
       body.appendChild(item);
     }
 
     function addAction(name: string, payload: any) {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "px-2 py-1 rounded border bg-background hover:bg-accent text-xs";
+      btn.className =
+        "px-2 py-1 rounded border bg-background hover:bg-accent text-xs";
       btn.textContent = name;
       btn.addEventListener("click", () => {
-        const ev = new CustomEvent("chat-action", { detail: { action: name, payload } });
+        const ev = new CustomEvent("chat-action", {
+          detail: { action: name, payload },
+        });
         window.dispatchEvent(ev);
       });
       actions.appendChild(btn);
@@ -318,8 +387,14 @@ function enhanceCards(root: HTMLElement) {
       addField("Status", data.status);
       addAction("Ver", { type: "contract.view", id: data.id });
       addAction("Editar", { type: "contract.edit", id: data.id });
-      addAction("Criar Projeto", { type: "project.create", for: data.customerId ?? data.customerName });
-      addAction("Adicionar Contato", { type: "contact.add", customerId: data.customerId });
+      addAction("Criar Projeto", {
+        type: "project.create",
+        for: data.customerId ?? data.customerName,
+      });
+      addAction("Adicionar Contato", {
+        type: "contact.add",
+        customerId: data.customerId,
+      });
     } else if (isCustomer) {
       title.textContent = data.name ?? "Cliente";
       sub.textContent = data.id ? `#${data.id}` : "Cliente";
@@ -329,8 +404,14 @@ function enhanceCards(root: HTMLElement) {
       addField("Criado em", data.createdAt);
       addAction("Ver", { type: "customer.view", id: data.id });
       addAction("Editar", { type: "customer.edit", id: data.id });
-      addAction("Novo Contrato", { type: "contract.create", customerId: data.id });
-      addAction("Agendar Reunião", { type: "meeting.schedule", customerId: data.id });
+      addAction("Novo Contrato", {
+        type: "contract.create",
+        customerId: data.id,
+      });
+      addAction("Agendar Reunião", {
+        type: "meeting.schedule",
+        customerId: data.id,
+      });
     } else {
       title.textContent = data.title ?? "Card";
       sub.textContent = data.subtitle ?? "";
@@ -356,7 +437,8 @@ function enhanceMiniForms(root: HTMLElement) {
     const raw = codeEl.textContent ?? "";
     const data = parseJsonSafe(raw) ?? {};
     const form = document.createElement("form");
-    form.className = "rounded-md border p-3 my-3 bg-muted/20 flex flex-col gap-2";
+    form.className =
+      "rounded-md border p-3 my-3 bg-muted/20 flex flex-col gap-2";
 
     const title = document.createElement("div");
     title.className = "text-sm font-medium";
@@ -366,23 +448,37 @@ function enhanceMiniForms(root: HTMLElement) {
     const row = document.createElement("div");
     row.className = "flex gap-2 flex-wrap";
     const date = document.createElement("input");
-    date.type = "date"; date.value = (data.initialDate || "").slice(0,10); date.className = "px-2 py-1 rounded border bg-background";
+    date.type = "date";
+    date.value = (data.initialDate || "").slice(0, 10);
+    date.className = "px-2 py-1 rounded border bg-background";
     const time = document.createElement("input");
-    time.type = "time"; time.value = (data.initialTime || ""); time.className = "px-2 py-1 rounded border bg-background";
-    row.appendChild(date); row.appendChild(time);
+    time.type = "time";
+    time.value = data.initialTime || "";
+    time.className = "px-2 py-1 rounded border bg-background";
+    row.appendChild(date);
+    row.appendChild(time);
     form.appendChild(row);
 
     const actions = document.createElement("div");
     actions.className = "flex gap-2";
     const submit = document.createElement("button");
-    submit.type = "submit"; submit.className = "px-2 py-1 rounded border bg-background hover:bg-accent text-xs"; submit.textContent = "Salvar";
+    submit.type = "submit";
+    submit.className =
+      "px-2 py-1 rounded border bg-background hover:bg-accent text-xs";
+    submit.textContent = "Salvar";
     const cancel = document.createElement("button");
-    cancel.type = "button"; cancel.className = "px-2 py-1 rounded border bg-background hover:bg-accent text-xs"; cancel.textContent = "Cancelar";
-    actions.appendChild(submit); actions.appendChild(cancel);
+    cancel.type = "button";
+    cancel.className =
+      "px-2 py-1 rounded border bg-background hover:bg-accent text-xs";
+    cancel.textContent = "Cancelar";
+    actions.appendChild(submit);
+    actions.appendChild(cancel);
     form.appendChild(actions);
 
     cancel.addEventListener("click", () => {
-      const ev = new CustomEvent("chat-form-cancel", { detail: { kind: "schedule" } });
+      const ev = new CustomEvent("chat-form-cancel", {
+        detail: { kind: "schedule" },
+      });
       window.dispatchEvent(ev);
     });
 
@@ -401,7 +497,6 @@ function enhanceMiniForms(root: HTMLElement) {
     pre.replaceWith(form);
   });
 }
-
 
 export const Response = memo(
   ({ className, ...props }: ResponseProps) => {
@@ -432,12 +527,12 @@ export const Response = memo(
 
     return (
       <div
-        ref={ref}
         className={cn(
-          "prose dark:prose-invert max-w-none size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+          "prose dark:prose-invert size-full max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
           "[&_code]:break-words",
           className
         )}
+        ref={ref}
       >
         <Streamdown {...props} />
       </div>

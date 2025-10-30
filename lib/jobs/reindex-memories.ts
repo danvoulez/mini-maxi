@@ -14,9 +14,11 @@ async function main() {
       ORDER BY updated_at DESC NULLS LAST
       LIMIT 200
     `;
-    let ok = 0, fail = 0;
+    let ok = 0,
+      fail = 0;
     for (const r of rows) {
-      const text = typeof r.content === "string" ? r.content : JSON.stringify(r.content);
+      const text =
+        typeof r.content === "string" ? r.content : JSON.stringify(r.content);
       try {
         const emb = await embedText(text);
         // pgvector: array to vector

@@ -38,29 +38,25 @@ export async function GET() {
     );
     // GET success log
     const __logTypeId = await ensureLogTypeId(db);
-    await db
-      .insert(ledgerObject)
-      .values({
-        typeId: __logTypeId,
-        data: {
-          level: "info",
-          message: "ledger.aggregates.get",
-          context: { objects, transactions: txs },
-        },
-      });
+    await db.insert(ledgerObject).values({
+      typeId: __logTypeId,
+      data: {
+        level: "info",
+        message: "ledger.aggregates.get",
+        context: { objects, transactions: txs },
+      },
+    });
     return NextResponse.json({ objects, transactions: txs }, { status: 200 });
   } catch (e: any) {
     const __logTypeId = await ensureLogTypeId(db);
-    await db
-      .insert(ledgerObject)
-      .values({
-        typeId: __logTypeId,
-        data: {
-          level: "error",
-          message: "ledger.aggregates.get.error",
-          context: { error: String(e?.message || e) },
-        },
-      });
+    await db.insert(ledgerObject).values({
+      typeId: __logTypeId,
+      data: {
+        level: "error",
+        message: "ledger.aggregates.get.error",
+        context: { error: String(e?.message || e) },
+      },
+    });
     return NextResponse.json(
       { error: "aggregate_failed", message: e?.message || "Unknown error" },
       { status: 500 }

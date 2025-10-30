@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { NextResponse } from "next/server";
@@ -5,7 +6,6 @@ import postgres from "postgres";
 import { auth } from "@/app/(auth)/auth";
 import { ledgerObject, ledgerTransaction, objectType } from "@/lib/db/ledger";
 import { transactionPostSchema } from "../schemas";
-import { randomUUID } from "crypto";
 
 async function ensureLogTypeId(db: any) {
   // Get or create the 'Log' object type
@@ -29,7 +29,10 @@ export async function POST(request: Request) {
   const json = await request.json().catch(() => ({}));
   const parsed = transactionPostSchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ error: "bad_request", issues: parsed.error.format() }, { status: 400 });
+    return NextResponse.json(
+      { error: "bad_request", issues: parsed.error.format() },
+      { status: 400 }
+    );
   }
   const { objectId, operationType, changes } = parsed.data;
 
@@ -80,29 +83,25 @@ export async function POST(request: Request) {
 
     // POST success log
     const __logTypeId = await ensureLogTypeId(db);
-    await db
-      .insert(ledgerObject)
-      .values({
-        typeId: __logTypeId,
-        data: {
-          level: "info",
-          message: "ledger.transactions.post",
-          context: { objectId, operationType, version: updated?.version },
-        },
-      });
+    await db.insert(ledgerObject).values({
+      typeId: __logTypeId,
+      data: {
+        level: "info",
+        message: "ledger.transactions.post",
+        context: { objectId, operationType, version: updated?.version },
+      },
+    });
     return NextResponse.json(updated, { status: 200 });
   } catch (e: any) {
     const __logTypeId = await ensureLogTypeId(db);
-    await db
-      .insert(ledgerObject)
-      .values({
-        typeId: __logTypeId,
-        data: {
-          level: "error",
-          message: "ledger.transactions.post.error",
-          context: { objectId, operationType, error: String(e?.message || e) },
-        },
-      });
+    await db.insert(ledgerObject).values({
+      typeId: __logTypeId,
+      data: {
+        level: "error",
+        message: "ledger.transactions.post.error",
+        context: { objectId, operationType, error: String(e?.message || e) },
+      },
+    });
     return NextResponse.json(
       { error: "record_failed", message: e?.message || "Unknown error" },
       { status: 500 }

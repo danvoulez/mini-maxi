@@ -22,13 +22,13 @@ import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
+import { cerebroTools } from "@/lib/ai/tools/cerebro";
 import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { ledgerAggregates } from "@/lib/ai/tools/ledger-aggregates";
 import { ledgerObjects } from "@/lib/ai/tools/ledger-objects";
 import { ledgerTransactions } from "@/lib/ai/tools/ledger-transactions";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
-import { cerebroTools } from "@/lib/ai/tools/cerebro";
 
 import { updateDocument } from "@/lib/ai/tools/update-document";
 import { isProductionEnvironment } from "@/lib/constants";
@@ -100,7 +100,6 @@ Ferramentas disponíveis:
 
 💡 Use o CEREBRO para lembrar preferências do usuário e contexto importante!
 `;
-
 
 export const maxDuration = 60;
 

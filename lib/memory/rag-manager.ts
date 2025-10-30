@@ -1,7 +1,11 @@
 // RAG Manager with pluggable drivers + simple circuit breaker & cache
 import postgres from "postgres";
 
-export type RAGSource = "vectorDB" | "webSearch" | "internalDocs" | "partnerAPIs";
+export type RAGSource =
+  | "vectorDB"
+  | "webSearch"
+  | "internalDocs"
+  | "partnerAPIs";
 export type RAGProvider = "pgIlike" | "vectorDB";
 
 export interface RAGSnippet {
@@ -49,7 +53,8 @@ class PgIlikeDriver implements RagDriver {
       `;
       const snippets: RAGSnippet[] = rows.map((r) => ({
         source: "internalDocs",
-        content: typeof r.content === "string" ? r.content : JSON.stringify(r.content),
+        content:
+          typeof r.content === "string" ? r.content : JSON.stringify(r.content),
         confidence: 0.6,
         metadata: { key: r.key, layer: r.layer, updatedAt: r.updated_at },
       }));
@@ -81,9 +86,15 @@ class VectorDbDriver implements RagDriver {
       `;
       const snippets: RAGSnippet[] = rows.map((r) => ({
         source: "internalDocs",
-        content: typeof r.content === "string" ? r.content : JSON.stringify(r.content),
+        content:
+          typeof r.content === "string" ? r.content : JSON.stringify(r.content),
         confidence: Math.max(0, 1 - Number(r.distance || 0)),
-        metadata: { key: r.key, layer: r.layer, updatedAt: r.updated_at, distance: r.distance },
+        metadata: {
+          key: r.key,
+          layer: r.layer,
+          updatedAt: r.updated_at,
+          distance: r.distance,
+        },
       }));
       return { ok: true, snippets };
     } catch (e) {
@@ -125,7 +136,9 @@ class CircuitBreaker {
     }
     return this.state !== "OPEN";
   }
-  getState() { return this.state; }
+  getState() {
+    return this.state;
+  }
 }
 
 // --- Manager ---
@@ -136,8 +149,10 @@ export class RAGManager {
   private ttlMs: number;
 
   constructor(opts?: { provider?: RAGProvider; ttlMs?: number }) {
-    const provider = opts?.provider ?? (process.env.RAG_PROVIDER as RAGProvider) ?? "pgIlike";
-    this.driver = provider === "vectorDB" ? new VectorDbDriver() : new PgIlikeDriver();
+    const provider =
+      opts?.provider ?? (process.env.RAG_PROVIDER as RAGProvider) ?? "pgIlike";
+    this.driver =
+      provider === "vectorDB" ? new VectorDbDriver() : new PgIlikeDriver();
     this.ttlMs = opts?.ttlMs ?? 15_000; // 15s cache para queries repetidas curtas
   }
 
@@ -145,16 +160,23 @@ export class RAGManager {
     return `${this.driver.name}:${query}:${JSON.stringify(hints ?? {})}`;
   }
 
-  async retrieve(query: string, hints?: Record<string, any>): Promise<RAGResult> {
+  async retrieve(
+    query: string,
+    hints?: Record<string, any>
+  ): Promise<RAGResult> {
     const cacheKey = this.key(query, hints);
     const cached = this.cache.get(cacheKey);
     const now = Date.now();
-    if (cached && (now - cached.at) < this.ttlMs) {
+    if (cached && now - cached.at < this.ttlMs) {
       return cached.result;
     }
 
     if (!this.circuitBreaker.canTry()) {
-      const fallback = cached?.result ?? { ok: false, degraded: true, snippets: [] };
+      const fallback = cached?.result ?? {
+        ok: false,
+        degraded: true,
+        snippets: [],
+      };
       return { ...fallback, degraded: true };
     }
 
@@ -164,18 +186,29 @@ export class RAGManager {
         this.circuitBreaker.onSuccess();
         this.cache.set(cacheKey, { at: now, result });
         return result;
-      } else {
-        this.circuitBreaker.onFailure();
-        const fallback = cached?.result ?? { ok: false, degraded: true, snippets: [] };
-        return { ...fallback, degraded: true };
       }
+      this.circuitBreaker.onFailure();
+      const fallback = cached?.result ?? {
+        ok: false,
+        degraded: true,
+        snippets: [],
+      };
+      return { ...fallback, degraded: true };
     } catch {
       this.circuitBreaker.onFailure();
-      const fallback = cached?.result ?? { ok: false, degraded: true, snippets: [] };
+      const fallback = cached?.result ?? {
+        ok: false,
+        degraded: true,
+        snippets: [],
+      };
       return { ...fallback, degraded: true };
     }
   }
 
-  getCircuitBreakerState() { return this.circuitBreaker.getState(); }
-  clearCache() { this.cache.clear(); }
+  getCircuitBreakerState() {
+    return this.circuitBreaker.getState();
+  }
+  clearCache() {
+    this.cache.clear();
+  }
 }

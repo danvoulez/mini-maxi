@@ -1,17 +1,17 @@
 /**
  * Structured logging utilities
- * 
+ *
  * Provides consistent, structured logging across the application
  * with support for different log levels, contexts, and destinations.
- * 
+ *
  * @module logger
  */
 
 export enum LogLevel {
-  DEBUG = 'debug',
-  INFO = 'info',
-  WARN = 'warn',
-  ERROR = 'error',
+  DEBUG = "debug",
+  INFO = "info",
+  WARN = "warn",
+  ERROR = "error",
 }
 
 export interface LogContext {
@@ -51,10 +51,7 @@ class Logger implements ILogger {
   private context: LogContext = {};
   private minLevel: LogLevel;
 
-  constructor(
-    context: LogContext = {},
-    minLevel: LogLevel = LogLevel.INFO
-  ) {
+  constructor(context: LogContext = {}, minLevel: LogLevel = LogLevel.INFO) {
     this.context = context;
     this.minLevel = minLevel;
   }
@@ -63,7 +60,12 @@ class Logger implements ILogger {
    * Check if log level should be emitted
    */
   private shouldLog(level: LogLevel): boolean {
-    const levels = [LogLevel.DEBUG, LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR];
+    const levels = [
+      LogLevel.DEBUG,
+      LogLevel.INFO,
+      LogLevel.WARN,
+      LogLevel.ERROR,
+    ];
     const currentIndex = levels.indexOf(this.minLevel);
     const targetIndex = levels.indexOf(level);
     return targetIndex >= currentIndex;
@@ -105,13 +107,15 @@ class Logger implements ILogger {
     }
 
     // Format for console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       const color = this.getColor(entry.level);
       const badge = `[${entry.level.toUpperCase()}]`;
       console.log(
         `${color}${badge}\x1b[0m ${entry.message}`,
-        entry.context && Object.keys(entry.context).length > 0 ? entry.context : '',
-        entry.error || ''
+        entry.context && Object.keys(entry.context).length > 0
+          ? entry.context
+          : "",
+        entry.error || ""
       );
     } else {
       // JSON format for production (structured logging)
@@ -127,12 +131,12 @@ class Logger implements ILogger {
    */
   private getColor(level: LogLevel): string {
     const colors = {
-      [LogLevel.DEBUG]: '\x1b[36m', // Cyan
-      [LogLevel.INFO]: '\x1b[32m',  // Green
-      [LogLevel.WARN]: '\x1b[33m',  // Yellow
-      [LogLevel.ERROR]: '\x1b[31m', // Red
+      [LogLevel.DEBUG]: "\x1b[36m", // Cyan
+      [LogLevel.INFO]: "\x1b[32m", // Green
+      [LogLevel.WARN]: "\x1b[33m", // Yellow
+      [LogLevel.ERROR]: "\x1b[31m", // Red
     };
-    return colors[level] || '\x1b[0m';
+    return colors[level] || "\x1b[0m";
   }
 
   /**
@@ -141,16 +145,16 @@ class Logger implements ILogger {
   private sendToExternalService(entry: LogEntry): void {
     // TODO: Implement external logging service integration
     // Examples: DataDog, Sentry, LogDNA, Papertrail
-    
+
     // For now, this is a placeholder
-    if (process.env.LOGGING_ENDPOINT && typeof fetch !== 'undefined') {
+    if (process.env.LOGGING_ENDPOINT && typeof fetch !== "undefined") {
       // Send to external service (only in environments where fetch is available)
       fetch(process.env.LOGGING_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(entry),
       }).catch((error) => {
-        console.error('Failed to send log to external service:', error);
+        console.error("Failed to send log to external service:", error);
       });
     }
   }
@@ -187,10 +191,7 @@ class Logger implements ILogger {
    * Create child logger with additional context
    */
   child(context: LogContext): ILogger {
-    return new Logger(
-      { ...this.context, ...context },
-      this.minLevel
-    );
+    return new Logger({ ...this.context, ...context }, this.minLevel);
   }
 }
 
@@ -225,7 +226,10 @@ export function createModuleLogger(moduleName: string): ILogger {
 /**
  * Create logger for specific request
  */
-export function createRequestLogger(requestId: string, userId?: string): ILogger {
+export function createRequestLogger(
+  requestId: string,
+  userId?: string
+): ILogger {
   return getLogger({
     requestId,
     ...(userId && { userId }),
@@ -241,11 +245,11 @@ export function logPerformance(
   context?: LogContext
 ): void {
   const logger = getLogger({ operation, durationMs });
-  
+
   if (durationMs > 1000) {
-    logger.warn('Slow operation detected', context);
+    logger.warn("Slow operation detected", context);
   } else {
-    logger.debug('Operation completed', context);
+    logger.debug("Operation completed", context);
   }
 }
 
@@ -254,12 +258,12 @@ export function logPerformance(
  */
 export function logSecurityEvent(
   event: string,
-  severity: 'low' | 'medium' | 'high' | 'critical',
+  severity: "low" | "medium" | "high" | "critical",
   context?: LogContext
 ): void {
-  const logger = getLogger({ event, severity, type: 'security' });
-  
-  if (severity === 'critical' || severity === 'high') {
+  const logger = getLogger({ event, severity, type: "security" });
+
+  if (severity === "critical" || severity === "high") {
     logger.error(`Security event: ${event}`, undefined, context);
   } else {
     logger.warn(`Security event: ${event}`, context);
@@ -277,7 +281,7 @@ export function logApiRequest(
   context?: LogContext
 ): void {
   const logger = getLogger({
-    type: 'api_request',
+    type: "api_request",
     method,
     path,
     statusCode,
@@ -304,22 +308,26 @@ export function logDatabaseQuery(
   context?: LogContext
 ): void {
   const logger = getLogger({
-    type: 'db_query',
+    type: "db_query",
     query: query.substring(0, 100), // Truncate long queries
     durationMs,
   });
 
   if (durationMs > 100) {
-    logger.warn('Slow query detected', context);
+    logger.warn("Slow query detected", context);
   } else {
-    logger.debug('Query executed', context);
+    logger.debug("Query executed", context);
   }
 }
 
 /**
  * Decorator for logging method calls
  */
-export function LogMethod(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+export function LogMethod(
+  target: any,
+  propertyKey: string,
+  descriptor: PropertyDescriptor
+) {
   const originalMethod = descriptor.value;
   const className = target.constructor.name;
 
@@ -331,9 +339,9 @@ export function LogMethod(target: any, propertyKey: string, descriptor: Property
       logger.debug(`Calling ${className}.${propertyKey}`);
       const result = await originalMethod.apply(this, args);
       const duration = Date.now() - startTime;
-      
+
       logPerformance(`${className}.${propertyKey}`, duration);
-      
+
       return result;
     } catch (error) {
       logger.error(
@@ -351,21 +359,21 @@ export function LogMethod(target: any, propertyKey: string, descriptor: Property
  * Sanitize sensitive data from logs
  */
 export function sanitize(data: any): any {
-  if (!data || typeof data !== 'object') {
+  if (!data || typeof data !== "object") {
     return data;
   }
 
   const sensitiveKeys = [
-    'password',
-    'token',
-    'secret',
-    'apiKey',
-    'api_key',
-    'authorization',
-    'cookie',
-    'sessionId',
-    'ssn',
-    'creditCard',
+    "password",
+    "token",
+    "secret",
+    "apiKey",
+    "api_key",
+    "authorization",
+    "cookie",
+    "sessionId",
+    "ssn",
+    "creditCard",
   ];
 
   const sanitized = { ...data };
@@ -373,8 +381,8 @@ export function sanitize(data: any): any {
   for (const key of Object.keys(sanitized)) {
     const lowerKey = key.toLowerCase();
     if (sensitiveKeys.some((sk) => lowerKey.includes(sk))) {
-      sanitized[key] = '[REDACTED]';
-    } else if (typeof sanitized[key] === 'object') {
+      sanitized[key] = "[REDACTED]";
+    } else if (typeof sanitized[key] === "object") {
       sanitized[key] = sanitize(sanitized[key]);
     }
   }

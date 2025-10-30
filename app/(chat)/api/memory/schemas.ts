@@ -1,8 +1,8 @@
 // Auto-generated schemas for Memory endpoints (by assistant patch)
 import { z } from "zod";
 
-export const memoryLayers = z.enum(["context","temporary","permanent"]);
-export const memoryScopes = z.enum(["agent_managed","user_owned"]);
+export const memoryLayers = z.enum(["context", "temporary", "permanent"]);
+export const memoryScopes = z.enum(["agent_managed", "user_owned"]);
 
 export const contextRequestSchema = z.object({
   ownerId: z.string().min(1),
@@ -25,15 +25,17 @@ export const promoteRequestSchema = z.object({
   requestId: z.string().optional(),
 });
 
-export const deleteRequestSchema = z.object({
-  ownerId: z.string().min(1),
-  ids: z.array(z.string().uuid()).optional(),
-  keys: z.array(z.string().min(1)).optional(),
-  requestId: z.string().optional(),
-}).refine((v) => !!(v.ids?.length || v.keys?.length), {
-  message: "Either ids or keys must be provided",
-  path: ["ids"],
-});
+export const deleteRequestSchema = z
+  .object({
+    ownerId: z.string().min(1),
+    ids: z.array(z.string().uuid()).optional(),
+    keys: z.array(z.string().min(1)).optional(),
+    requestId: z.string().optional(),
+  })
+  .refine((v) => !!(v.ids?.length || v.keys?.length), {
+    message: "Either ids or keys must be provided",
+    path: ["ids"],
+  });
 
 export const ragRequestSchema = z.object({
   query: z.string().min(1),

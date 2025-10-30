@@ -1,31 +1,31 @@
 /**
  * Rate limiting utilities for API protection
- * 
+ *
  * Implements token bucket algorithm for rate limiting.
  * Uses in-memory storage (suitable for single-instance deployments)
  * or Redis for distributed deployments.
- * 
+ *
  * @module rate-limit
  */
 
-import { type NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from "next/server";
 
 interface RateLimitConfig {
   /**
    * Maximum number of requests allowed in the time window
    */
   maxRequests: number;
-  
+
   /**
    * Time window in milliseconds
    */
   windowMs: number;
-  
+
   /**
    * Message to return when rate limit is exceeded
    */
   message?: string;
-  
+
   /**
    * Whether to include rate limit headers in response
    */
@@ -42,14 +42,17 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Cleanup old entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (entry.resetTime < now) {
-      rateLimitStore.delete(key);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore.entries()) {
+      if (entry.resetTime < now) {
+        rateLimitStore.delete(key);
+      }
     }
-  }
-}, 5 * 60 * 1000);
+  },
+  5 * 60 * 1000
+);
 
 /**
  * Get client identifier from request
@@ -57,23 +60,22 @@ setInterval(() => {
  */
 function getClientId(request: NextRequest): string {
   // Try to get user from session/auth header first
-  const authHeader = request.headers.get('authorization');
+  const authHeader = request.headers.get("authorization");
   if (authHeader) {
-    return `user:${authHeader.split(' ')[1]?.substring(0, 20)}`;
+    return `user:${authHeader.split(" ")[1]?.substring(0, 20)}`;
   }
-  
+
   // Fall back to IP address
-  const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded?.split(',')[0] || 
-             request.headers.get('x-real-ip') || 
-             'unknown';
-  
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip =
+    forwarded?.split(",")[0] || request.headers.get("x-real-ip") || "unknown";
+
   return `ip:${ip}`;
 }
 
 /**
  * Rate limit middleware factory
- * 
+ *
  * @example
  * ```typescript
  * export async function POST(request: NextRequest) {
@@ -81,11 +83,11 @@ function getClientId(request: NextRequest): string {
  *     maxRequests: 10,
  *     windowMs: 60000, // 1 minute
  *   });
- *   
+ *
  *   if (!rateLimitResult.success) {
  *     return rateLimitResult.response;
  *   }
- *   
+ *
  *   // Process request...
  * }
  * ```
@@ -97,7 +99,7 @@ export async function rateLimit(
   const {
     maxRequests,
     windowMs,
-    message = 'Too many requests, please try again later.',
+    message = "Too many requests, please try again later.",
     includeHeaders = true,
   } = config;
 
@@ -114,7 +116,7 @@ export async function rateLimit(
       resetTime: now + windowMs,
     };
     rateLimitStore.set(key, entry);
-    
+
     return createSuccessResponse(entry, maxRequests, includeHeaders);
   }
 
@@ -148,16 +150,19 @@ function createRateLimitResponse(
   includeHeaders: boolean
 ): { success: false; response: NextResponse } {
   const headers = new Headers();
-  
+
   if (includeHeaders) {
-    headers.set('X-RateLimit-Limit', String(entry.count));
-    headers.set('X-RateLimit-Remaining', '0');
-    headers.set('X-RateLimit-Reset', String(entry.resetTime));
-    headers.set('Retry-After', String(Math.ceil((entry.resetTime - Date.now()) / 1000)));
+    headers.set("X-RateLimit-Limit", String(entry.count));
+    headers.set("X-RateLimit-Remaining", "0");
+    headers.set("X-RateLimit-Reset", String(entry.resetTime));
+    headers.set(
+      "Retry-After",
+      String(Math.ceil((entry.resetTime - Date.now()) / 1000))
+    );
   }
 
   const response = NextResponse.json(
-    { error: 'rate_limit_exceeded', message },
+    { error: "rate_limit_exceeded", message },
     { status: 429, headers }
   );
 
@@ -175,9 +180,9 @@ export const rateLimitPresets = {
   auth: {
     maxRequests: 5,
     windowMs: 60 * 1000,
-    message: 'Too many authentication attempts. Please try again later.',
+    message: "Too many authentication attempts. Please try again later.",
   },
-  
+
   /**
    * Moderate rate limit for API endpoints
    * 100 requests per minute
@@ -185,9 +190,9 @@ export const rateLimitPresets = {
   api: {
     maxRequests: 100,
     windowMs: 60 * 1000,
-    message: 'API rate limit exceeded. Please try again later.',
+    message: "API rate limit exceeded. Please try again later.",
   },
-  
+
   /**
    * Generous rate limit for chat messages
    * 30 requests per minute
@@ -195,9 +200,9 @@ export const rateLimitPresets = {
   chat: {
     maxRequests: 30,
     windowMs: 60 * 1000,
-    message: 'Message rate limit exceeded. Please slow down.',
+    message: "Message rate limit exceeded. Please slow down.",
   },
-  
+
   /**
    * Strict rate limit for expensive operations (embeddings, RAG)
    * 20 requests per minute
@@ -205,14 +210,14 @@ export const rateLimitPresets = {
   expensive: {
     maxRequests: 20,
     windowMs: 60 * 1000,
-    message: 'Rate limit exceeded for this operation. Please try again later.',
+    message: "Rate limit exceeded for this operation. Please try again later.",
   },
 } as const;
 
 /**
  * Redis-based rate limiter for distributed deployments
  * Requires REDIS_URL environment variable
- * 
+ *
  * @example
  * ```typescript
  * const rateLimiter = createRedisRateLimiter();
@@ -223,11 +228,11 @@ export function createRedisRateLimiter() {
   // Placeholder for Redis implementation
   // TODO: Implement when Redis is available
   const REDIS_URL = process.env.REDIS_URL;
-  
+
   if (!REDIS_URL) {
-    console.warn('REDIS_URL not configured. Using in-memory rate limiting.');
+    console.warn("REDIS_URL not configured. Using in-memory rate limiting.");
   }
-  
+
   return {
     async check(
       key: string,
@@ -238,7 +243,7 @@ export function createRedisRateLimiter() {
       // TODO: Replace with Redis Lua script for atomicity
       const entry = rateLimitStore.get(key);
       const now = Date.now();
-      
+
       if (!entry || entry.resetTime < now) {
         const newEntry = { count: 1, resetTime: now + windowMs };
         rateLimitStore.set(key, newEntry);
@@ -248,10 +253,10 @@ export function createRedisRateLimiter() {
           resetTime: newEntry.resetTime,
         };
       }
-      
+
       entry.count++;
       const allowed = entry.count <= maxRequests;
-      
+
       return {
         allowed,
         remaining: Math.max(0, maxRequests - entry.count),
