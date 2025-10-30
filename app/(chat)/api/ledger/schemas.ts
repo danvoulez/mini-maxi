@@ -9,7 +9,18 @@ export const objectPostSchema = z.object({
 
 export const transactionPostSchema = z.object({
   objectId: z.string().uuid(),
-  operationType: z.enum(["CREATE","UPDATE","DELETE","UPSERT","PATCH","SET","MERGE","REPLACE"]).default("UPDATE"),
+  operationType: z
+    .enum([
+      "CREATE",
+      "UPDATE",
+      "DELETE",
+      "UPSERT",
+      "PATCH",
+      "SET",
+      "MERGE",
+      "REPLACE",
+    ])
+    .default("UPDATE"),
   changes: z.record(z.any()).optional(),
   createdBy: z.string().optional(),
 });

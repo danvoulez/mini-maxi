@@ -12,11 +12,12 @@ export async function POST(request: Request) {
   const json = await request.json().catch(() => ({}));
   const parsed = ragRequestSchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ error: "bad_request", issues: parsed.error.format() }, { status: 400 });
+    return NextResponse.json(
+      { error: "bad_request", issues: parsed.error.format() },
+      { status: 400 }
+    );
   }
   const { query, hints } = parsed.data;
-
-
 
   if (!query) {
     return NextResponse.json({ error: "missing_query" }, { status: 400 });

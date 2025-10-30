@@ -30,8 +30,6 @@ export const ledgerObjects = ({ origin }: { origin: string }) =>
         const qs = input.typeName
           ? `?type=${encodeURIComponent(input.typeName)}`
           : "";
-        const r = await fetch(`${base}/app/(chat)/api/ledger/objects${qs}`);
-        const qs = input.typeName ? `?type=${encodeURIComponent(input.typeName)}` : "";
         const r = await fetch(`${base}/api/ledger/objects${qs}`);
         if (!r.ok) throw new Error(`ledgerObjects:get failed: ${r.status}`);
         return await r.json();

@@ -1,0 +1,26 @@
+{
+	"buildCommand": "pnpm build",
+	"devCommand": "pnpm dev",
+	"installCommand": "pnpm install",
+	"framework": "nextjs",
+	"regions": ["iad1"],
+	"functions": {
+		"app/(chat)/api/**/*.ts": {
+			"maxDuration": 60
+		},
+		"app/(auth)/api/**/*.ts": {
+			"maxDuration": 30
+		}
+	},
+	"headers": [
+		{
+			"source": "/api/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "no-store, must-revalidate"
+				}
+			]
+		}
+	]
+}

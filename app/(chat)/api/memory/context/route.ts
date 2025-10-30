@@ -1,8 +1,8 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { auth } from "@/app/(auth)/auth";
 import { MemoryManager } from "@/lib/memory/manager";
 import { contextRequestSchema } from "../schemas";
-import { randomUUID } from "crypto";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -12,17 +12,15 @@ export async function POST(request: Request) {
   const json = await request.json().catch(() => ({}));
   const parsed = contextRequestSchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ error: "bad_request", issues: parsed.error.format() }
+    return NextResponse.json(
+      { error: "bad_request", issues: parsed.error.format() },
+      { status: 400 }
+    );
+  }
   const ownerId = session.user.id;
   const requestId = (parsed.data as any).requestId ?? randomUUID();
-, { status: 400 });
-  }
-  const { maxTokens, reserveForModel, layers, includeScopes, tags, now } = parsed.data;
-
-
-
-  , { status: 403 });
-  }
+  const { maxTokens, reserveForModel, layers, includeScopes, tags, now } =
+    parsed.data;
 
   const conn = process.env.POSTGRES_URL;
   if (!conn) {

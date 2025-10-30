@@ -1,13 +1,13 @@
 /**
  * Testing utilities and helpers
- * 
+ *
  * Provides common test utilities, fixtures, and helper functions
  * for unit, integration, and E2E tests.
- * 
+ *
  * @module test-utils
  */
 
-import { type NextRequest } from 'next/server';
+import type { NextRequest } from "next/server";
 
 /**
  * Create mock NextRequest for testing
@@ -21,29 +21,30 @@ export function createMockRequest(
     cookies?: Record<string, string>;
   } = {}
 ): NextRequest {
-  const {
-    method = 'GET',
-    headers = {},
-    body,
-    cookies = {},
-  } = options;
+  const { method = "GET", headers = {}, body, cookies = {} } = options;
 
   const request = new Request(url, {
     method,
     headers: new Headers(headers),
     ...(body && {
-      body: typeof body === 'string' ? body : JSON.stringify(body),
+      body: typeof body === "string" ? body : JSON.stringify(body),
     }),
   }) as NextRequest;
 
   // Mock cookies
-  Object.defineProperty(request, 'cookies', {
+  Object.defineProperty(request, "cookies", {
     value: {
-      get: (name: string) => cookies[name] ? { value: cookies[name] } : undefined,
-      getAll: () => Object.entries(cookies).map(([name, value]) => ({ name, value })),
+      get: (name: string) =>
+        cookies[name] ? { value: cookies[name] } : undefined,
+      getAll: () =>
+        Object.entries(cookies).map(([name, value]) => ({ name, value })),
       has: (name: string) => name in cookies,
-      set: (name: string, value: string) => { cookies[name] = value; },
-      delete: (name: string) => { delete cookies[name]; },
+      set: (name: string, value: string) => {
+        cookies[name] = value;
+      },
+      delete: (name: string) => {
+        delete cookies[name];
+      },
     },
     writable: true,
   });
@@ -57,9 +58,9 @@ export function createMockRequest(
 export function createMockSession(overrides?: Partial<any>) {
   return {
     user: {
-      id: 'test-user-id',
-      email: 'test@example.com',
-      name: 'Test User',
+      id: "test-user-id",
+      email: "test@example.com",
+      name: "Test User",
       ...overrides?.user,
     },
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
@@ -81,7 +82,7 @@ export async function waitFor(
   const {
     timeout = 5000,
     interval = 100,
-    timeoutMessage = 'Condition not met within timeout',
+    timeoutMessage = "Condition not met within timeout",
   } = options;
 
   const startTime = Date.now();
@@ -111,7 +112,7 @@ export function createMockDb() {
     offset: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
     execute: jest.fn(async () => Array.from(store.values())),
-    
+
     // Mock insert/update/delete
     insert: jest.fn().mockReturnThis(),
     values: jest.fn(async (data: any) => {
@@ -122,7 +123,7 @@ export function createMockDb() {
     update: jest.fn().mockReturnThis(),
     set: jest.fn().mockReturnThis(),
     delete: jest.fn().mockReturnThis(),
-    
+
     // Direct access to store for testing
     _store: store,
     _clear: () => store.clear(),
@@ -132,7 +133,7 @@ export function createMockDb() {
 /**
  * Generate test UUID
  */
-export function generateTestId(prefix = 'test'): string {
+export function generateTestId(prefix = "test"): string {
   return `${prefix}-${Math.random().toString(36).substring(2, 15)}`;
 }
 
@@ -141,14 +142,14 @@ export function generateTestId(prefix = 'test'): string {
  */
 export function createTestMemory(overrides?: Partial<any>) {
   return {
-    id: generateTestId('mem'),
-    ownerId: 'test-user-id',
-    scope: 'user_owned' as const,
-    layer: 'temporary' as const,
+    id: generateTestId("mem"),
+    ownerId: "test-user-id",
+    scope: "user_owned" as const,
+    layer: "temporary" as const,
     key: `test:${Date.now()}`,
-    content: { test: 'data' },
+    content: { test: "data" },
     confidence: 0.9,
-    sensitivity: 'public' as const,
+    sensitivity: "public" as const,
     createdAt: new Date(),
     updatedAt: new Date(),
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -161,10 +162,10 @@ export function createTestMemory(overrides?: Partial<any>) {
  */
 export function createTestMessage(overrides?: Partial<any>) {
   return {
-    id: generateTestId('msg'),
-    chatId: generateTestId('chat'),
-    role: 'user' as const,
-    content: 'Test message',
+    id: generateTestId("msg"),
+    chatId: generateTestId("chat"),
+    role: "user" as const,
+    content: "Test message",
     createdAt: new Date(),
     ...overrides,
   };
@@ -238,7 +239,7 @@ export function setupTestEnvironment() {
 
   beforeEach(() => {
     // Reset environment
-    process.env.NODE_ENV = 'test';
+    process.env.NODE_ENV = "test";
   });
 
   afterEach(async () => {
@@ -252,7 +253,7 @@ export function setupTestEnvironment() {
 /**
  * Mock timers for testing
  */
-export function mockTime(date: Date = new Date('2025-10-30T08:00:00.000Z')) {
+export function mockTime(date: Date = new Date("2025-10-30T08:00:00.000Z")) {
   const originalNow = Date.now;
   const timestamp = date.getTime();
 
